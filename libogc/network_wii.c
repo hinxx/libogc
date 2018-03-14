@@ -31,7 +31,7 @@ distribution.
 #define MAX_IP_RETRIES		100
 #define MAX_INIT_RETRIES	32
 
-//#define DEBUG_NET
+#define DEBUG_NET
 
 #ifdef DEBUG_NET
 #define debug_printf(fmt, args...) \
@@ -1111,8 +1111,12 @@ s32 if_config(char *local_ip, char *netmask, char *gateway,bool use_dhcp, int ma
 	s32 i,ret;
 	struct in_addr hostip;
 
-	if (!use_dhcp)
+	debug_printf("if_config('%s', '%s', '%s', %d, %d)\n", local_ip, netmask, gateway, use_dhcp, max_retries);
+
+	if (!use_dhcp) {
+		debug_printf("if_config: ERROR: static IPs are not supported, use DHCP!\n");
 		return -EINVAL;
+	}
 
 	for (i = 0; i < MAX_INIT_RETRIES; ++i) {
 		ret = net_init();
