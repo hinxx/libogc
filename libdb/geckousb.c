@@ -95,12 +95,14 @@ static int __usb_isgeckoalive(s32 chn)
 	s32 ret;
 	u16 val;
 
+	DBG_LOG("enter\n");
 	if(!EXI_Lock(chn,EXI_DEVICE_0,NULL)) return 0;
 
 	val = 0x9000;
 	ret = __send_command(chn,&val);
 	if(ret==1 && !(val&0x0470)) ret = 0;
 
+	DBG_LOG("exit ret = %ld\n", ret);
 	EXI_Unlock(chn);
 	return ret;
 }

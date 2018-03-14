@@ -33,12 +33,12 @@
 #define highhex(x)		hexchars [((x)>>4)&0xf]
 #define lowhex(x)		hexchars [(x)&0xf]
 
-#if UIP_LOGGING == 1
-#include <stdio.h>
-#define UIP_LOG(m) uip_log(__FILE__,__LINE__,m)
-#else
-#define UIP_LOG(m)
-#endif /* UIP_LOGGING == 1 */
+//#if UIP_LOGGING == 1
+//#include <stdio.h>
+//#define UIP_LOG(m) uip_log(__FILE__,__LINE__,m)
+//#else
+//#define UIP_LOG(m)
+//#endif /* UIP_LOGGING == 1 */
 
 static s32 dbg_active = 0;
 static s32 dbg_instep = 0;
@@ -361,6 +361,19 @@ static void process_query(const char *inp,char *outp,s32 thread)
 				packqmheader(outp,i,done,athread);
 			}
 			break;
+		/* HK: handle qfThreadInfo */
+		case 'f':
+			{
+				if (inp[2] != 'T' && inp[3] != 'h') {
+					strcpy(outp,"E99");
+					break;
+				}
+				optr = outp;
+				*optr++ = 'm';
+				optr = thread2vhstr(optr,thread);
+				*optr++ = 0;
+			}
+			break;
 		default:
 			break;
 	}
@@ -424,6 +437,7 @@ static void gdbstub_report_exception(frame_context *frame,s32 thread)
 
 	*ptr++ = '\0';
 
+	DBG_LOG("resp: '%s'\n", remcomOutBuffer);
 }
 
 
@@ -621,7 +635,7 @@ void DEBUG_Init(s32 device_type,s32 channel_port)
 	u32 level;
 	struct uip_ip_addr localip,netmask,gateway;
 
-	UIP_LOG("DEBUG_Init()\n");
+	DBG_LOG("enter\n");
 
 	__lwp_thread_dispatchdisable();
 
@@ -637,6 +651,7 @@ void DEBUG_Init(s32 device_type,s32 channel_port)
 		current_device = tcpip_init(&localip,&netmask,&gateway,(u16)channel_port);
 	}
 
+	DBG_LOG("pre dbg_initialized = %ld\n", dbg_initialized);
 	if(current_device!=NULL) {
 		_CPU_ISR_Disable(level);
 		__exception_sethandler(EX_DSI,dbg_exceptionhandler);
@@ -649,5 +664,6 @@ void DEBUG_Init(s32 device_type,s32 channel_port)
 		
 	}
 	__lwp_thread_dispatchenable();
+	DBG_LOG("exit dbg_initialized = %ld\n", dbg_initialized);
 }
 
